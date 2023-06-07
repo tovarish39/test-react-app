@@ -2,29 +2,15 @@ import { useState, useRef, useEffect } from "react";
 import Background from "./components/Background";
 import ModalAuth from "./components/ModalAuth";
 import ModalMain from "./components/ModalMain";
-
-function findValueByKey(obj, key) {
-    if (typeof obj !== 'object') return null;
-
-    if (obj.hasOwnProperty(key)) {
-        return obj[key];
-    }
-
-    for (const prop in obj) {
-        const result = findValueByKey(obj[prop], key);
-        if (result !== null) return result;
-    }
-    return null;
-}
-
+import findValueByKey from "./sub/findValueByKey";
 
 export default function App() {
-    const [showModalAuth, setShowModalAuth] = useState(true)
-    const [showModalMain, setShowModalMain] = useState(false)
-    const [currentIdInstance, setCurrentIdInstance] = useState('')
+    const [showModalAuth          , setShowModalAuth]           = useState(true)
+    const [showModalMain          , setShowModalMain]           = useState(false)
+    const [currentIdInstance      , setCurrentIdInstance]       = useState('')
     const [currentApiTokenInstance, setCurrentApiTokenInstance] = useState('')
-    const [currentPhone, setCurrentPhone] = useState('')
-    const [messages, setMessages] = useState([])
+    const [currentPhone           , setCurrentPhone]            = useState('')
+    const [messages               , setMessages]                = useState([])
 
     const textareaMessageElement = useRef(null)
     const host = 'https://api.green-api.com'
