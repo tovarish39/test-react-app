@@ -2,7 +2,8 @@ import { useState, useRef, useEffect } from "react";
 import Background from "./components/Background";
 import ModalAuth from "./components/ModalAuth";
 import ModalMain from "./components/ModalMain";
-import findValueByKey from "./sub/findValueByKey";
+import { sendingMessage, getUpdate } from "./sub/request";
+
 
 export default function App() {
     const [showModalAuth          , setShowModalAuth]           = useState(true)
@@ -13,12 +14,11 @@ export default function App() {
     const [messages               , setMessages]                = useState([])
 
     const textareaMessageElement = useRef(null)
-    const host = 'https://api.green-api.com'
 
     useEffect(() => {
         const intervalId = setInterval(() => {
             if (currentPhone.length !== 0)
-                getUpdate()
+                getUpdate(currentPhone, currentIdInstance, currentApiTokenInstance, messages, setMessages)
 
         }, 2000)
 
@@ -26,8 +26,6 @@ export default function App() {
             clearInterval(intervalId);
         };
     }, [currentPhone.length, getUpdate, Date.now()])
-
-
 
     function handleSubmitIsAuthorised(e) {
         e.preventDefault()
@@ -40,35 +38,10 @@ export default function App() {
         setShowModalMain(!showModalMain)
         e.target.reset()
     }
+
     function handleSignOut() {
         setShowModalAuth(!showModalAuth)
         setShowModalMain(!showModalMain)
-    }
-
-    async function deleleReceipt(receiptId) { fetch(`${host}/waInstance${currentIdInstance}/deleteNotification/${currentApiTokenInstance}/${receiptId}`, { method: "DELETE" }) }
-
-    async function getUpdate() {
-        try {
-
-            if (currentPhone.length === 0) return
-            const update = await fetch(`${host}/waInstance${currentIdInstance}/receiveNotification/${currentApiTokenInstance}`)
-            if (update.status !== 200) return
-            const result = await update.json()
-
-            if (result == null) return
-            const receiptId = result['receiptId']
-
-            const text = findValueByKey(result, 'textMessage')
-            if (text) {
-                setMessages([...messages, { text: text, fromSelf: false }])
-            }
-            await deleleReceipt(receiptId)
-
-        } catch (error) {
-            console.log(error)
-        }
-
-
     }
 
     function pushPhone(e) {
@@ -77,44 +50,21 @@ export default function App() {
     }
 
     function handleBlurPhone(e) { pushPhone(e) }
+
     function handleKeyDownPhone(e) { if (e.key === "Enter") pushPhone(e) }
-
-
-    async function sendingMessage(message) {
-        try {
-            const response = await fetch(`https://api.green-api.com/waInstance${currentIdInstance}/sendMessage/${currentApiTokenInstance}`, {
-                method: "POST",
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    "chatId": `${currentPhone}@c.us`,
-                    "message": message
-                })
-            })
-            if (response.status !== 200) {
-                alert('Неверные данные запроса')
-                return
-            }
-            setMessages([...messages, { text: message, fromSelf: true }])
-
-        } catch (error) {
-            console.log(error)
-        }
-    }
 
     async function handleSendMessage(e) {
         const message = e.target.value.trim()
         if (e.key !== "Enter") return
         if (message.length === 0) return
-        await sendingMessage(message)
+        await sendingMessage(message, setMessages, currentIdInstance, currentApiTokenInstance, currentPhone, messages)
         e.target.value = ''
     }
 
     async function handleClickIcon() {
         const message = textareaMessageElement.current.value.trim()
         if (message.length === 0) return
-        await sendingMessage(message)
+        await sendingMessage(message, setMessages, currentIdInstance, currentApiTokenInstance, currentPhone, messages)
         textareaMessageElement.current.value = ''
     }
 
