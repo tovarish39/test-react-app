@@ -11,7 +11,6 @@ export default function ModalMain({
     refEl,
     messages
 }) {
-    console.log(messages)
     const isNone = (show) ? '' : 'none'
     return (
         <>

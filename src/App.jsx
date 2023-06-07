@@ -3,20 +3,20 @@ import Background from "./components/Background";
 import ModalAuth from "./components/ModalAuth";
 import ModalMain from "./components/ModalMain";
 
-function findValueByKey(node, key) {
-    if (typeof node !== 'object') return null;
-    
-    if (node.hasOwnProperty(key)) {
-      return node[key];
+function findValueByKey(obj, key) {
+    if (typeof obj !== 'object') return null;
+
+    if (obj.hasOwnProperty(key)) {
+        return obj[key];
     }
-  
-    for (const prop in node) {
-      const result = findValueByKey(node[prop], key);
-      if (result !== null) return result;
+
+    for (const prop in obj) {
+        const result = findValueByKey(obj[prop], key);
+        if (result !== null) return result;
     }
     return null;
-  }
-  
+}
+
 
 export default function App() {
     const [showModalAuth, setShowModalAuth] = useState(true)
@@ -29,19 +29,17 @@ export default function App() {
     const textareaMessageElement = useRef(null)
     const host = 'https://api.green-api.com'
 
-    // useEffect(()=>{
-    //     const intervalId = setInterval(()=>{
-    //         if (currentPhone.length !== 0) getUpdate()
-    //     }, 2000)
+    useEffect(() => {
+        const intervalId = setInterval(() => {
+            if (currentPhone.length !== 0) getUpdate()
+        }, 2000)
+
+        return () => {
+            clearInterval(intervalId);
+        };
+    }, [currentPhone.length, getUpdate, Date.now()])
 
 
-
-    //     return () => {
-    //         clearInterval(intervalId);
-    //       };
-    // },[currentPhone.length, getUpdate, Date.now()])
-
-    
 
     function handleSubmitIsAuthorised(e) {
         e.preventDefault()
@@ -59,7 +57,6 @@ export default function App() {
         setShowModalMain(!showModalMain)
     }
 
-
     async function deleleReceipt(receiptId) { fetch(`${host}/waInstance${currentIdInstance}/deleteNotification/${currentApiTokenInstance}/${receiptId}`, { method: "DELETE" }) }
 
     async function getUpdate() {
@@ -69,26 +66,12 @@ export default function App() {
 
         if (result == null) return
         const receiptId = result['receiptId']
-        // const sendByApi = result.body['sendByApi']
-
-        setTimeout(()=>{},500)
-        console.log(result.body)
-        // console.log(sendByApi === undefined)
-        // console.log((result.body['messageData']))
-        // console.log((result.body['messageData']['textMessageData']))
 
         const text = findValueByKey(result, 'textMessage')
-        console.log(text)
-
-        // if ((sendByApi === undefined) && (result.body['messageData']) && (result.body['messageData']['textMessageData'])) {
         if (text) {
-console.log('here')
-            // const text = result.body['messageData']['textMessageData']['textMessage']
-            console.log(text)
             setMessages([...messages, { text: text, fromSelf: false }])
         }
         await deleleReceipt(receiptId)
-        console.log(`deleted  ${receiptId}`)
     }
 
     function pushPhone(e) {
@@ -125,9 +108,6 @@ console.log('here')
         await sendingMessage(message)
         e.target.value = ''
     }
-
-
-
 
     async function handleClickIcon() {
         const message = textareaMessageElement.current.value.trim()
