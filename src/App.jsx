@@ -62,6 +62,7 @@ export default function App() {
     async function getUpdate() {
         if (currentPhone.length === 0) return
         const update = await fetch(`${host}/waInstance${currentIdInstance}/receiveNotification/${currentApiTokenInstance}`)
+        if (update.status !== 200) return
         const result = await update.json()
 
         if (result == null) return
