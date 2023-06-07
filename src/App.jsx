@@ -31,7 +31,9 @@ export default function App() {
 
     useEffect(() => {
         const intervalId = setInterval(() => {
-            if (currentPhone.length !== 0) getUpdate()
+            if (currentPhone.length !== 0)
+                getUpdate()
+
         }, 2000)
 
         return () => {
@@ -60,19 +62,27 @@ export default function App() {
     async function deleleReceipt(receiptId) { fetch(`${host}/waInstance${currentIdInstance}/deleteNotification/${currentApiTokenInstance}/${receiptId}`, { method: "DELETE" }) }
 
     async function getUpdate() {
-        if (currentPhone.length === 0) return
-        const update = await fetch(`${host}/waInstance${currentIdInstance}/receiveNotification/${currentApiTokenInstance}`)
-        if (update.status !== 200) return
-        const result = await update.json()
+        try {
 
-        if (result == null) return
-        const receiptId = result['receiptId']
+            if (currentPhone.length === 0) return
+            const update = await fetch(`${host}/waInstance${currentIdInstance}/receiveNotification/${currentApiTokenInstance}`)
+            if (update.status !== 200) return
+            const result = await update.json()
 
-        const text = findValueByKey(result, 'textMessage')
-        if (text) {
-            setMessages([...messages, { text: text, fromSelf: false }])
+            if (result == null) return
+            const receiptId = result['receiptId']
+
+            const text = findValueByKey(result, 'textMessage')
+            if (text) {
+                setMessages([...messages, { text: text, fromSelf: false }])
+            }
+            await deleleReceipt(receiptId)
+
+        } catch (error) {
+            console.log(error)
         }
-        await deleleReceipt(receiptId)
+
+
     }
 
     function pushPhone(e) {
@@ -85,21 +95,26 @@ export default function App() {
 
 
     async function sendingMessage(message) {
-        const response = await fetch(`https://api.green-api.com/waInstance${currentIdInstance}/sendMessage/${currentApiTokenInstance}`, {
-            method: "POST",
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                "chatId": `${currentPhone}@c.us`,
-                "message": message
+        try {
+            const response = await fetch(`https://api.green-api.com/waInstance${currentIdInstance}/sendMessage/${currentApiTokenInstance}`, {
+                method: "POST",
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    "chatId": `${currentPhone}@c.us`,
+                    "message": message
+                })
             })
-        })
-        if (response.status !== 200) {
-            alert('Неверные данные запроса')
-            return
+            if (response.status !== 200) {
+                alert('Неверные данные запроса')
+                return
+            }
+            setMessages([...messages, { text: message, fromSelf: true }])
+
+        } catch (error) {
+            console.log(error)
         }
-        setMessages([...messages, { text: message, fromSelf: true }])
     }
 
     async function handleSendMessage(e) {
